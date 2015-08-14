@@ -72,7 +72,8 @@
 
     var generateQRCode = function(guid) {
         // urlencode
-        var url = encodeURI('http://10.0.1.15:3000/' + 'mobile/' + guid);
+        // var url = encodeURI('http://10.0.1.15:3000/' + 'mobile/' + guid);
+        var url = encodeURI(window.location.host + 'mobile/' + guid);
         var str = 'https://chart.googleapis.com/chart?cht=qr&chl=' + url + '&choe=UTF-8&chs=150x150';
         $('#qr').html('<img src="' + str + '" />');
     }
