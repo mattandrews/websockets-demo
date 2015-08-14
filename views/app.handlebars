@@ -1,0 +1,82 @@
+<p>
+    (<span id="numClients"></span> desktop clients connected)
+</p>
+
+{{# if isMobile }}
+    <button id="theButton" style="padding: 30px;">Press me</button>
+    Your matched desktop device is {{ guid }}
+{{else}}
+    Your ID is <div id="guid"></div>
+    <div id="qr"></div>
+    <div id="test">
+        This space will do something once you interact on mobile.
+    </div>
+
+    <ul id="players">
+    </ul>
+{{/if}}
+
+<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+<script>
+    var socket = io();
+
+{{# if isMobile }}
+    // tell server a mobile device has connected
+    // with a reference to a desktop guid
+    socket.emit('mobile-connect', {{ guid }});
+
+    // when mobile user clicks a button, tell server
+    $('#theButton').click(function(){
+        socket.emit('mobile-button-click-sent');
+    });
+
+{{ else }}
+
+    // only increment counter for new desktop users
+    socket.on('user-joined', function(numClients) {
+        $('#numClients').text(numClients);
+    });
+
+    // above call should've given us a guid
+    // now we can generate a QR code
+    socket.on('guid-assigned', function(guid) {
+        $('#guid').text(guid);
+        generateQRCode(guid);
+    });
+
+    // when a mobile user connects, tell desktop
+    socket.on('desktop-connect', function(guid) {
+        alert("your mobile is connected! " + guid);
+    });
+
+    // when the click from mobile is received
+    socket.on('mobile-button-click-received', function() {
+        var imgs = [
+            'https://placekitten.com/g/200/300',
+            'https://placekitten.com/g/210/300',
+            'https://placekitten.com/g/220/300',
+            'https://placekitten.com/g/230/300',
+            'https://placekitten.com/g/240/300',
+            'https://placekitten.com/g/250/300',
+            'https://placekitten.com/g/260/300',
+            'https://placekitten.com/g/270/300',
+            'https://placekitten.com/g/280/300',
+            'https://placekitten.com/g/290/300',
+            'https://placekitten.com/g/300/300',
+        ];
+        $('#qr').remove();
+        var rndImg = imgs[Math.floor(Math.random() * (imgs.length - 1))];
+        $('#test').html("<img src='" + rndImg + "' />");
+    });
+
+    var generateQRCode = function(guid) {
+        // urlencode
+        var url = encodeURI('http://10.0.1.15:3000/' + 'mobile/' + guid);
+        var str = 'https://chart.googleapis.com/chart?cht=qr&chl=' + url + '&choe=UTF-8&chs=150x150';
+        $('#qr').html('<img src="' + str + '" />');
+    }
+
+{{/if}}
+
+</script>
